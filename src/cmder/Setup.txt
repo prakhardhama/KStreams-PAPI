@@ -1,42 +1,47 @@
 Run servers
+TODO: Add script for setup?
 --------------------------------------
 
 # Start Zookeeper:
-	cd /c/zookeeper/zookeeper-3.4.13/bin
-	zkserver.cmd &
+	cd /c/zookeeper/zookeeper-3.4.13/bin && zkserver.cmd
+
+# Processes using zookeeper
+    netstat -a -b -n -o | grep 2181
+
+# Set Kafka home (temp)
+    export KAFKA_HOME=/c/kafka/kafka_2.11-2.0.0
 
 # Start Kafka:
     Clear logs directory
-	cd /c/kafka/kafka_2.11-2.0.0
-    bin/windows/kafka-server-start.bat config/server.properties &
+	cd $KAFKA_HOME && bin/windows/kafka-server-start.bat config/server.properties
 
 Prepare topics
 --------------------------------------
 
 # Create topic:
-    cd /c/kafka/kafka_2.11-2.0.0
-    bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-input1
+    $KAFKA_HOME/bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-input1
 
 # Create output topic:
-    bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-output
+    $KAFKA_HOME/bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic-output
 
 # List of topics:
-    bin/windows/kafka-topics.bat --list --zookeeper localhost:2181
+    $KAFKA_HOME/bin/windows/kafka-topics.bat --list --zookeeper localhost:2181
 
 Process using console
 --------------------------------------
 # Prepare input text file
     echo -e "all streams lead to kafka\nhello kafka streams\njoin kafka summit" > tmp/file-input.txt
 # Send data to input topic
-    cat tmp/file-input.txt | bin/windows/kafka-console-producer.bat --broker-list localhost:9092 --topic topic-input1
+    TODO: Add Kafka Connect
+    cat tmp/file-input.txt | $KAFKA_HOME/bin/windows/kafka-console-producer.bat --broker-list localhost:9092 --topic topic-input1
 # Verify messages in topic using consumer
-    bin/windows/kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic topic-input1 --from-beginning
+    $KAFKA_HOME/bin/windows/kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic topic-input1 --from-beginning
 
 # Run application
-    export CLASSPATH=:[["$CLASSPATH":]]"/d/#CS/Kafka/papi/target/classes/"
-    bin/windows/kafka-run-class.bat WordCountPAPI
+    export CLASSPATH="/d/#CS/Kafka/papi/target/classes/"
+    $KAFKA_HOME/bin/windows/kafka-run-class.bat WordCountPAPI
 # Verify word count
-    bin/windows/kafka-console-consumer.bat --bootstrap-server localhost:9092 \
+    $KAFKA_HOME/bin/windows/kafka-console-consumer.bat --bootstrap-server localhost:9092 \
             --topic topic-output \
             --from-beginning \
             --formatter kafka.tools.DefaultMessageFormatter \
